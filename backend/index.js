@@ -23,10 +23,7 @@ const server = http.createServer(app);
 /* 🔥 SOCKET SETUP */
 const io = new Server(server, {
   cors: {
-    origin: [
-      "http://localhost:5173",
-      "https://attendance-564p.onrender.com"
-    ],
+    origin: "https://attendance-564p.onrender.com",
     credentials: true
   }
 });
@@ -43,10 +40,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://attendance-564p.onrender.com"
-    ],
+    origin: "https://attendance-564p.onrender.com",
     credentials: true,
   })
 );
