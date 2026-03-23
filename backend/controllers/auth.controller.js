@@ -78,12 +78,12 @@ export const login = async (req, res) => {
         process.env.JWT_SECRET,
         { expiresIn: "7d" }
       );
-
-      res.cookie("token", token, {
+      
+         res.cookie("token", token, {
         httpOnly: true,
-        sameSite: "none",
-        secure:true,
-        maxAge:  7 * 24 * 60 * 60 * 1000
+        secure: true,
+        sameSite: "None",
+        maxAge: 7 * 24 * 60 * 60 * 1000
       });
 
       return res.status(200).json({
@@ -121,12 +121,12 @@ export const login = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      sameSite: "none",
-      secure:true,
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
+   res.cookie("token", token, {
+  httpOnly: true,
+  secure: true,
+  sameSite: "None",
+  maxAge: 7 * 24 * 60 * 60 * 1000
+});
 
     return res.status(200).json({
       message: "Login successful",
@@ -248,33 +248,5 @@ export const resetPassword = async(req,res)=>{
 }
 
 
-export const googleAuth = async(req,res)=>{
-    try {
-        const {mobile, fullName, email,role} = req.body
 
-        let user = await User.findOne({email})
-        if(!user){
-            user = await User.create({
-                email,
-                fullName,
-                mobile,
-                role
-            })
-        }
-
-        let token = await getToken(user._id)
-        res.cookie("token", token, {
-            secure:true,
-            sameSite:"none",
-            maxAge:7*24*60*60*1000,
-            httpOnly:true
-        })
-
-        return res.status(200).json(user)
-
-    } catch (error) {
-        console.log(`error in googleAuth ${error}`)
-        return res.status(500).json(`error in googleAuth ${error}`)
-    }
-}
 
