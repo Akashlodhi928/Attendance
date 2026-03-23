@@ -108,29 +108,58 @@ function Dashboard() {
   }
 
   /* ── Location ── */
-  const addLocation = () => {
-    if (alreadyMarked) return
-    if (!navigator.geolocation) return alert("Geolocation not supported")
-    setLocLoading(true)
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const lat = pos.coords.latitude
-        const lng = pos.coords.longitude
-        setLocation({ lat, lng })
-        try {
-          const res = await axios.get(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
-          )
-          setAddress(res.data.display_name)
-        } catch {
-          setAddress("Address not found")
-        } finally {
-          setLocLoading(false)
-        }
-      },
-      () => { alert("Location permission denied"); setLocLoading(false) }
-    )
+ const addLocation = () => {
+  if (alreadyMarked) return
+
+  if (!navigator.geolocation) {
+    alert("Geolocation not supported")
+    return
   }
+
+  setLocLoading(true)
+  setAddress("Fetching address...") // 🔥 important
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const lat = pos.coords.latitude
+      const lng = pos.coords.longitude
+
+      setLocation({ lat, lng })
+
+      try {
+        const res = await axios.get(
+          `https://nominatim.openstreetmap.org/reverse`,
+          {
+            params: {
+              format: "json",
+              lat: lat,
+              lon: lng
+            }
+          }
+        )
+
+        if (res.data?.display_name) {
+          setAddress(res.data.display_name)
+        } else {
+          setAddress("Address not available")
+        }
+
+      } catch (error) {
+        console.log(error)
+        setAddress("Error fetching address")
+      } finally {
+        setLocLoading(false)
+      }
+    },
+
+    (error) => {
+      alert("Location permission denied")
+      setLocLoading(false)
+      setAddress("")
+    }
+  )
+}
+ 
 
   /* ── Check In ── */
   const markAttendance = async () => {
@@ -405,7 +434,9 @@ useEffect(() => {
                       </div>
                       <div className="min-w-0">
                         <p className="text-xs font-bold text-emerald-600 mb-1">Location Captured</p>
-                        <p className="text-xs text-slate-500 leading-relaxed line-clamp-4">{address}</p>
+                       <p>
+                          {locLoading ? "Fetching address..." : address || "No address yet"}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 text-[10px] text-slate-400 bg-slate-100 rounded-lg px-2.5 py-1.5 w-fit">
