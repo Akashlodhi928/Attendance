@@ -23,7 +23,10 @@ const server = http.createServer(app);
 /* 🔥 SOCKET SETUP */
 const io = new Server(server, {
   cors: {
-    origin: "https://attendance-564p.onrender.com",
+    origin: [
+      "http://localhost:5173",
+      "https://your-frontend-url.vercel.app"
+    ],
     credentials: true
   }
 });
@@ -40,7 +43,10 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: ["https://attendance-564p.onrender.com"],
+    origin: [
+      "http://localhost:5173",
+      "https://your-frontend-url.vercel.app"
+    ],
     credentials: true,
   })
 );
