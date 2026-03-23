@@ -5,7 +5,7 @@ export const isAuth = async (req, res , next) => {
     let token = req.cookies.token
 
     if(!token){
-        return res.status(404).json({message:"Unauthorized, token not found"})
+        return res.status(401).json({message:"Unauthorized, token not found"})
     }
 
     const decoded = jwt.verify(token , process.env.JWT_SECRET)
