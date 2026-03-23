@@ -127,16 +127,17 @@ function Dashboard() {
       setLocation({ lat, lng })
 
       try {
-        const res = await axios.get(
-          `https://nominatim.openstreetmap.org/reverse`,
-          {
-            params: {
-              format: "json",
-              lat: lat,
-              lon: lng
+      const res = await axios.get(
+            `https://nominatim.openstreetmap.org/reverse`,
+            {
+              params: {
+                format: "json",
+                lat: lat,
+                lon: lng
+              },
+              withCredentials: false // 🔥 YE ADD KAR
             }
-          }
-        )
+          )
 
         if (res.data?.display_name) {
           setAddress(res.data.display_name)
