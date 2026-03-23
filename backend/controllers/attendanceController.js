@@ -61,31 +61,32 @@ export const checkIn = async (req, res) => {
       })
     }
 
-    let address = "Address not found"
+  let address = ""
 
-    try {
-
-      const geo = await axios.get(
-        "https://nominatim.openstreetmap.org/reverse",
-        {
-          params: {
-            format: "json",
-            lat: lat,
-            lon: lng
-          },
-          headers: {
-            "User-Agent": "attendance-system"
-          }
-        }
-      )
-
-      if (geo.data?.display_name) {
-        address = geo.data.display_name
-      }
-
-    } catch (error) {
-      console.log("Geo location error:", error.message)
+try {
+  const geo = await axios.get(
+    "https://nominatim.openstreetmap.org/reverse",
+    {
+      params: {
+        format: "json",
+        lat: lat,
+        lon: lng
+      },
+      headers: {
+        "User-Agent": "attendance-system"
+      },
+      timeout: 7000
     }
+  )
+
+  if (geo.data?.display_name) {
+    address = geo.data.display_name
+  }
+
+} catch (error) {
+  console.log("Geo error:", error.message)
+}
+
 
     let imageUrl = ""
 
