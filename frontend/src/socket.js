@@ -1,6 +1,6 @@
 import { io } from "socket.io-client"
 
-const socket = io("http://localhost:8000", {
+const socket = io("https://attendance-system-j9d3.onrender.com", {
   transports: ["websocket"],
   autoConnect: true,
   withCredentials: true
