@@ -79,18 +79,13 @@ export const login = async (req, res) => {
         { expiresIn: "7d" }
       );
       
-         res.cookie("token", token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "None",
-        maxAge: 7 * 24 * 60 * 60 * 1000
-      });
 
-      return res.status(200).json({
-        message: "Admin login successful",
-        role: "admin"
-      });
-    }
+
+     return res.status(200).json({
+  message: "Admin login successful",
+  role: "admin",
+  token
+});
 
 
 
@@ -120,18 +115,12 @@ export const login = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
-
-   res.cookie("token", token, {
-  httpOnly: true,
-  secure: true,
-  sameSite: "None",
-  maxAge: 7 * 24 * 60 * 60 * 1000
+      
+  return res.status(200).json({
+  message: "Login successful",
+  role: user.role,
+  token // 🔥 send token
 });
-
-    return res.status(200).json({
-      message: "Login successful",
-      role: user.role
-    });
 
   } catch (error) {
 
