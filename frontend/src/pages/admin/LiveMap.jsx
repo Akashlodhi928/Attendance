@@ -35,8 +35,7 @@ function LiveMap() {
   const mapRef = useRef(null)
   const navigate = useNavigate()
 
-  useEffect(() => {
-
+ useEffect(() => {
     const fetchLocation = async () => {
       try {
         const res = await axios.get(
@@ -45,25 +44,46 @@ function LiveMap() {
         )
 
         if (res.data?.lat && res.data?.lng) {
-          setLocation(res.data)
+          const lat = Number(res.data.lat)
+          const lng = Number(res.data.lng)
 
+          setLocation({ ...res.data, lat, lng })
+
+          // ✅ FIXED REVERSE GEOCODING
           try {
             const geoRes = await axios.get(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${res.data.lat}&lon=${res.data.lng}`
+              "https://nominatim.openstreetmap.org/reverse",
+              {
+                params: {
+                  format: "json",
+                  lat: lat,
+                  lon: lng
+                },
+                headers: {
+                  "User-Agent": "my-app (myemail@gmail.com)"
+                }
+              }
             )
-            setAddress(geoRes.data.display_name || "Address not found")
-          } catch {
+
+            setAddress(
+              geoRes.data?.display_name || "Address not found"
+            )
+
+          } catch (err) {
+            console.log("Geo Error:", err.response?.data || err.message)
             setAddress("Address not found")
           }
         }
 
       } catch (err) {
-        console.log(err)
+        console.log("Location Error:", err.message)
       }
     }
 
     fetchLocation()
-    const interval = setInterval(fetchLocation, 10000)
+
+    // ✅ reduce API spam
+    const interval = setInterval(fetchLocation, 30000)
 
     return () => clearInterval(interval)
 
