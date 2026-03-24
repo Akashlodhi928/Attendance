@@ -5,12 +5,15 @@ const locationSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User"
   },
+
   lat: Number,
   lng: Number,
-  address: String
-}, {
-  timestamps: true   // ⚠️ THIS IS MUST
-})
+  address: String,
+  timestamp: {
+    type: Date,
+    default: Date.now
+  }
+});
 
 const Location = mongoose.model("Location", locationSchema)
 
