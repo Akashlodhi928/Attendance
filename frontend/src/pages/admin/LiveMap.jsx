@@ -116,18 +116,14 @@ function LiveMap() {
       {/* ── Title row ── */}
       <div className="flex items-center gap-3">
         {/* Icon */}
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-200 flex-shrink-0 text-base">
-          📍
-        </div>
+       
 
         {/* Text */}
         <div>
           <h2 className="m-0 text-lg font-extrabold text-slate-800 leading-tight">
-            Live Location
+            User Location
           </h2>
-          <p className="m-0 text-[11px] text-slate-400">
-            Updates every 10 seconds
-          </p>
+         
         </div>
 
         {/* Live badge */}
