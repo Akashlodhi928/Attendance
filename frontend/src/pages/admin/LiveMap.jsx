@@ -30,7 +30,6 @@ function LiveMap() {
 
   const { userId } = useParams()
   const [location, setLocation] = useState(null)
-  const [address, setAddress] = useState("Loading address...")
   const [satellite, setSatellite] = useState(false)
   const mapRef = useRef(null)
   const navigate = useNavigate()
@@ -44,17 +43,10 @@ function LiveMap() {
           { withCredentials: true }
         )
 
+        // ✅ FIXED: The server now returns { lat, lng, timestamp, address }
+        // No need for a separate Nominatim call in the browser (avoids CORS issues)
         if (res.data?.lat && res.data?.lng) {
           setLocation(res.data)
-
-          try {
-            const geoRes = await axios.get(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${res.data.lat}&lon=${res.data.lng}`
-            )
-            setAddress(geoRes.data.display_name || "Address not found")
-          } catch {
-            setAddress("Address not found")
-          }
         }
 
       } catch (err) {
@@ -69,30 +61,22 @@ function LiveMap() {
 
   }, [userId])
 
-  const goToCurrentLocation = () => {
-    if (mapRef.current && location) {
-      mapRef.current.setView([location.lat, location.lng], 15, {
-        animate: true
-      })
-    }
-  }
-
   if (!location) {
     return <div className="p-6 text-center">Loading map...</div>
   }
 
   return (
     <div className="p-5 space-y-5">
-   <button
-  onClick={() => navigate(-1)}
-  className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 
-             px-5 py-2 rounded-lg text-white font-medium 
-             shadow-md hover:shadow-lg 
-             hover:scale-105 active:scale-95 
-             transition-all duration-200"
->
-  ← Back
-</button>
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 
+                   px-5 py-2 rounded-lg text-white font-medium 
+                   shadow-md hover:shadow-lg 
+                   hover:scale-105 active:scale-95 
+                   transition-all duration-200"
+      >
+        ← Back
+      </button>
 
       <h2 className="text-lg font-bold">Live Location</h2>
 
@@ -119,7 +103,7 @@ function LiveMap() {
 
           <Marker position={[location.lat, location.lng]}>
             <Popup>
-              📍 {address}
+              📍 {location.address || "Address not found"}
             </Popup>
           </Marker>
 
@@ -127,8 +111,7 @@ function LiveMap() {
 
         </MapContainer>
 
-
-        {/* ✅ SATELLITE BUTTON FIXED */}
+        {/* ✅ SATELLITE BUTTON */}
         <button
           onClick={() => setSatellite(!satellite)}
           className="absolute top-4 right-4 z-[1000] bg-white shadow-xl border border-gray-300 rounded-lg px-4 py-2 text-xs font-semibold hover:bg-gray-100 active:scale-95 transition-all"
@@ -140,7 +123,7 @@ function LiveMap() {
 
       {/* TEXT DETAILS */}
       <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-        
+
         <h3 className="text-sm font-semibold text-slate-700 mb-2">
           Current Location Details
         </h3>
@@ -149,12 +132,16 @@ function LiveMap() {
 
           <p>
             <span className="font-medium text-slate-800">📍 Address:</span><br />
-            {address}
+            {/* ✅ FIXED: address now comes directly from the API response */}
+            {location.address || "Address not found"}
           </p>
 
           <p>
             <span className="font-medium text-slate-800">🕒 Last Updated:</span>{" "}
-            {new Date(location.timestamp).toLocaleString()}
+            {/* ✅ FIXED: timestamp is returned from server, converts correctly */}
+            {location.timestamp
+              ? new Date(location.timestamp).toLocaleString()
+              : "N/A"}
           </p>
 
         </div>
