@@ -5,13 +5,16 @@ const locationSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User"
   },
+
   lat: Number,
   lng: Number,
-  address: String,
+
   timestamp: {
     type: Date,
     default: Date.now
   }
 });
 
-export default mongoose.model("Location", locationSchema);
+const Location = mongoose.model("Location", locationSchema)
+
+export default Location

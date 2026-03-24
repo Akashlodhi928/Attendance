@@ -51,8 +51,7 @@ function LiveMap() {
             const geoRes = await axios.get(
               `https://nominatim.openstreetmap.org/reverse?format=json&lat=${res.data.lat}&lon=${res.data.lng}`
             )
-            setLocation(res.data)
-            setAddress(res.data.address || "Address not found")
+            setAddress(geoRes.data.display_name || "Address not found")
           } catch {
             setAddress("Address not found")
           }
