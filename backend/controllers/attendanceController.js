@@ -36,7 +36,7 @@ const autoCloseAttendance = async (userId) => {
 export const checkIn = async (req, res) => {
   try {
 
-    const { userId, image, lat, lng } = req.body
+    const { userId, image, lat, lng, address: frontendAddress } = req.body
 
     if (!userId || !lat || !lng) {
       return res.status(400).json({
@@ -46,8 +46,7 @@ export const checkIn = async (req, res) => {
 
     const today = new Date().toISOString().split("T")[0]
 
-    /* AUTO CLOSE OLD ATTENDANCE */
-
+    // ✅ auto close old
     await autoCloseAttendance(userId)
 
     const existing = await Attendance.findOne({
@@ -61,44 +60,46 @@ export const checkIn = async (req, res) => {
       })
     }
 
-  let address = ""
+    // ✅ FINAL ADDRESS LOGIC
+    let finalAddress = frontendAddress || ""
 
-try {
-  const geo = await axios.get(
-    "https://nominatim.openstreetmap.org/reverse",
-    {
-      params: {
-        format: "json",
-        lat: lat,
-        lon: lng
-      },
-      headers: {
-        "User-Agent": "attendance-system"
-      },
-      timeout: 7000
+    // 👉 Agar frontend se address nahi aaya to API use karo
+    if (!finalAddress) {
+      try {
+        const geo = await axios.get(
+          "https://nominatim.openstreetmap.org/reverse",
+          {
+            params: {
+              format: "json",
+              lat: lat,
+              lon: lng
+            },
+            headers: {
+              "User-Agent": "attendance-system"
+            },
+            timeout: 7000
+          }
+        )
+
+        if (geo.data?.display_name) {
+          finalAddress = geo.data.display_name
+        }
+
+      } catch (error) {
+        console.log("Geo error:", error.message)
+      }
     }
-  )
-
-  if (geo.data?.display_name) {
-    address = geo.data.display_name
-  }
-
-} catch (error) {
-  console.log("Geo error:", error.message)
-}
-
 
     let imageUrl = ""
 
     if (image) {
-
       const upload = await cloudinary.uploader.upload(image, {
         folder: "attendance"
       })
-
       imageUrl = upload.secure_url
     }
 
+    // ✅ SAVE DATA
     const attendance = await Attendance.create({
       user: new mongoose.Types.ObjectId(userId),
       date: today,
@@ -107,13 +108,12 @@ try {
         lat: lat,
         lng: lng
       },
-      address: address,
+      address: finalAddress || "No address",
       image: imageUrl,
       status: "active"
     })
 
     const io = req.app.get("io")
-
     if (io) {
       io.emit("attendanceMarked")
     }

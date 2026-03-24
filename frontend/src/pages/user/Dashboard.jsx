@@ -133,7 +133,8 @@ function Dashboard() {
               params: {
                 format: "json",
                 lat: lat,
-                lon: lng
+                lon: lng,
+               
               },
               withCredentials: false // 🔥 YE ADD KAR
             }
@@ -169,7 +170,7 @@ function Dashboard() {
       setLoading(true)
       await axios.post(
         `${serverUrl}/api/attendance/checkin`,
-        { userId: user._id, image, lat: location.lat, lng: location.lng },
+        { userId: user._id, image, lat: location.lat, lng: location.lng ,address},
         { withCredentials: true }
       )
       socket.emit("attendanceMarked")
