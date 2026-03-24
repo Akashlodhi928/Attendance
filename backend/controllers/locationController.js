@@ -18,7 +18,7 @@ export const updateLocation = async (req, res) => {
   }
 };
 
-// ✅ FIXED: Get latest location + resolve address on the SERVER (avoids browser CORS issues)
+// ✅ FIXED: Reverse geocoding with multiple fallback strategies
 export const getLatestLocation = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -31,40 +31,89 @@ export const getLatestLocation = async (req, res) => {
       return res.status(404).json({ error: "Location not found" });
     }
 
-    // ✅ Resolve address on server side (Node.js has no CORS issue with Nominatim)
-    let address = "Address not found";
-    try {
-      const geoRes = await axios.get(
-        "https://nominatim.openstreetmap.org/reverse",
-        {
-          params: {
-            format: "json",
-            lat: location.lat,
-            lon: location.lng,
-          },
-          headers: {
-            // ✅ Required — Nominatim blocks requests without a proper User-Agent
-            "User-Agent": "attendance-system/1.0 (your@email.com)",
-          },
-          timeout: 7000,
-        }
-      );
+    const { lat, lng } = location;
 
-      if (geoRes.data?.display_name) {
-        address = geoRes.data.display_name;
+    let address = null;
+
+    // ─────────────────────────────────────────────
+    // Strategy 1: Nominatim (OpenStreetMap)
+    // ─────────────────────────────────────────────
+    if (!address) {
+      try {
+        const geoRes = await axios.get(
+          "https://nominatim.openstreetmap.org/reverse",
+          {
+            params: {
+              format: "json",
+              lat: lat,
+              lon: lng,
+              zoom: 18,
+              addressdetails: 1,
+            },
+            headers: {
+              "User-Agent": "AttendanceApp/1.0",
+              "Accept-Language": "en",
+            },
+            timeout: 8000,
+          }
+        );
+
+        console.log("✅ Nominatim response:", JSON.stringify(geoRes.data));
+
+        if (geoRes.data?.display_name) {
+          address = geoRes.data.display_name;
+        }
+      } catch (err) {
+        console.log("❌ Nominatim failed:", err.message);
       }
-    } catch (geoErr) {
-      console.log("Geo reverse error:", geoErr.message);
     }
 
-    // ✅ Return a clean plain object (not raw mongoose doc)
+    // ─────────────────────────────────────────────
+    // Strategy 2: BigDataCloud (no API key needed)
+    // ─────────────────────────────────────────────
+    if (!address) {
+      try {
+        const bdcRes = await axios.get(
+          "https://api.bigdatacloud.net/data/reverse-geocode-client",
+          {
+            params: {
+              latitude: lat,
+              longitude: lng,
+              localityLanguage: "en",
+            },
+            timeout: 8000,
+          }
+        );
+
+        console.log("✅ BigDataCloud response:", JSON.stringify(bdcRes.data));
+
+        const d = bdcRes.data;
+        if (d?.locality || d?.city || d?.principalSubdivision) {
+          address = [d.locality, d.city, d.principalSubdivision, d.countryName]
+            .filter(Boolean)
+            .join(", ");
+        }
+      } catch (err) {
+        console.log("❌ BigDataCloud failed:", err.message);
+      }
+    }
+
+    // ─────────────────────────────────────────────
+    // Strategy 3: Coordinates fallback (always works)
+    // ─────────────────────────────────────────────
+    if (!address) {
+      address = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      console.log("⚠️ All geocoding failed, showing coordinates");
+    }
+
     res.json({
-      lat: location.lat,
-      lng: location.lng,
-      timestamp: location.timestamp, // ✅ This ensures "Last Updated" shows correctly
-      address,                        // ✅ Address resolved server-side
+      lat,
+      lng,
+      timestamp: location.timestamp,
+      address,
     });
   } catch (err) {
+    console.log("❌ getLatestLocation error:", err.message);
     res.status(500).json({ error: err.message });
   }
 };
