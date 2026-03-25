@@ -57,9 +57,6 @@ app.use(
   })
 );
 
-// 🔥 VERY IMPORTANT
-app.options("*", cors());
-
 /* 🔥 ROUTES */
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
