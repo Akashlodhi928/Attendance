@@ -94,32 +94,41 @@ io.on("connection", (socket) => {
   });
 });
 
-/* 🔥 AUTO CHECKOUT LOGIC */
-setInterval(async () => {
+const autoCloseAllAttendance = async () => {
   try {
-    const now = new Date();
+    const today = new Date().toISOString().split("T")[0];
 
-    if (now.getHours() === 23 && now.getMinutes() === 59) {
+    const records = await Attendance.find({
+      status: "active"
+    });
 
-      const today = new Date().toISOString().split("T")[0];
+    for (let record of records) {
 
-      const records = await Attendance.find({
-        date: today,
-        checkOutTime: null,
-      });
+      // 👉 sirf purane records close karega
+      if (record.date !== today) {
 
-      for (const record of records) {
-        record.checkOutTime = new Date();
+        const checkoutTime = new Date(record.checkInTime);
+        checkoutTime.setHours(23, 59, 59, 999);
+
+        record.checkOutTime = checkoutTime;
+        record.status = "completed";
+
         await record.save();
       }
-
-      console.log("Auto checkout executed");
     }
 
-  } catch (error) {
-    console.log("Auto checkout error:", error);
+    console.log("✅ Auto close old attendance done");
+
+  } catch (err) {
+    console.log("❌ Auto close error:", err);
   }
-}, 60000);
+};
+
+/* 🔥 HAR 5 MINUTE ME AUTO FIX */
+setInterval(() => {
+  autoCloseAllAttendance();
+}, 5 * 60 * 1000);
+
 
 /* 🔥 SERVER START */
 server.listen(port, () => {
