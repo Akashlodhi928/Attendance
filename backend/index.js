@@ -37,13 +37,28 @@ DbConnection();
 /* 🔥 MIDDLEWARE */
 app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
+const allowedOrigins = [
+  "https://attendance-564p.onrender.com",
+  "http://localhost:5173"
+];
 
 app.use(
   cors({
-    origin: "https://attendance-564p.onrender.com",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS not allowed"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
+
+// 🔥 VERY IMPORTANT
+app.options("*", cors());
 
 /* 🔥 ROUTES */
 app.use("/api/auth", authRouter);
